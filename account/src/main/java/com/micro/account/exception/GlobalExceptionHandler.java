@@ -15,7 +15,7 @@ import java.util.Map;
 public class GlobalExceptionHandler {
     @ExceptionHandler
     public ResponseEntity<ApiResponse<Object>> genericHanlder(Exception e){
-        ApiResponse<Object> response = new ApiResponse<>("Error", "Something went wrong", null);
+        ApiResponse<Object> response = new ApiResponse<>("Error", "Something went wrong : "+e.getMessage(), null);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
     @ExceptionHandler(MethodArgumentNotValidException.class)

@@ -6,6 +6,7 @@ import com.micro.account.dto.external.EmployeeResponse;
 import com.micro.account.entities.Account;
 import com.micro.account.exception.DublicateResourceException;
 import com.micro.account.exception.ResourceNotFoundException;
+import com.micro.account.external.client.EmployeeClient;
 import com.micro.account.payload.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -28,6 +29,7 @@ public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
     private final ModelMapper modelMapper;
     private final RestTemplate restTemplate;
+    private  final  EmployeeClient employeeClient;
 
     @Override
     public ApiResponse<List<Account>> getAllAccount() {
@@ -57,28 +59,34 @@ public class AccountServiceImpl implements AccountService {
 
         }
         //check if employee id is not present
+
 //        ResponseEntity<ApiResponse<EmployeeResponse>> responseEmployee = restTemplate.exchange("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" + accountDto.getEmployeeId(), HttpMethod.GET,
 //                null,//null because this request is not post
 //                new ParameterizedTypeReference<ApiResponse<EmployeeResponse>>() {
 //                });
         //stop default excepiton handling behaviour
-        restTemplate.setErrorHandler(new DefaultResponseErrorHandler(){
-            @Override
-            public boolean hasError(ClientHttpResponse response) throws IOException {
-                return super.hasError(response);
-            }
-        });
-        //check if employee id is not present
-        ResponseEntity<ApiResponse<EmployeeResponse>> response = restTemplate.exchange("http://localhost:8081/api/employees/" + accountDto.getEmployeeId(), HttpMethod.GET,
-                null,//null because this request is not post
-                new ParameterizedTypeReference<ApiResponse<EmployeeResponse>>() {
-                });
-        ApiResponse<EmployeeResponse> employeeResponse = response.getBody();
+//        restTemplate.setErrorHandler(new DefaultResponseErrorHandler(){
+//            @Override
+//            public boolean hasError(ClientHttpResponse response) throws IOException {
+//                return super.hasError(response);
+//            }
+//        });
+//        //check if employee id is not present
+//        ResponseEntity<ApiResponse<EmployeeResponse>> response = restTemplate.exchange("http://localhost:8081/api/employees/" + accountDto.getEmployeeId(), HttpMethod.GET,
+//                null,//null because this request is not post
+//                new ParameterizedTypeReference<ApiResponse<EmployeeResponse>>() {
+//                });
+//        ApiResponse<EmployeeResponse> employeeResponse = response.getBody();
+//
+////        assert employeeResponse != null;
+//        if (employeeResponse.getData() == null || !"SUCESS".equalsIgnoreCase(employeeResponse.getStatus()) || employeeResponse.getData() == null) {
+//            throw new ResourceNotFoundException("Employee Id : " + accountDto.getAccountNo() + "Does not exist");
+//        }
+        System.out.println(accountDto.getAccountNo());
 
-//        assert employeeResponse != null;
-        if (employeeResponse.getData() == null || !"SUCESS".equalsIgnoreCase(employeeResponse.getStatus()) || employeeResponse.getData() == null) {
-            throw new ResourceNotFoundException("Employee Id : " + accountDto.getAccountNo() + "Does not exist");
-        }
+     employeeClient.getSingleEmployee(accountDto.getEmployeeId());
+
+
         Account account = modelMapper.map(accountDto, Account.class);
         account.setId(UUID.randomUUID().toString());
         account.setDateTime(LocalDateTime.now().toString());
