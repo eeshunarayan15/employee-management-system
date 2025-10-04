@@ -5,13 +5,16 @@ import com.micro.account.dto.AccountDto;
 import com.micro.account.dto.external.EmployeeResponse;
 import com.micro.account.entities.Account;
 import com.micro.account.exception.DublicateResourceException;
+import com.micro.account.exception.EmployeeServiceException;
 import com.micro.account.exception.ResourceNotFoundException;
 import com.micro.account.external.client.EmployeeClient;
 import com.micro.account.payload.ApiResponse;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
@@ -29,7 +32,7 @@ public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
     private final ModelMapper modelMapper;
     private final RestTemplate restTemplate;
-    private  final  EmployeeClient employeeClient;
+    private final EmployeeClient employeeClient;
 
     @Override
     public ApiResponse<List<Account>> getAllAccount() {
@@ -84,7 +87,21 @@ public class AccountServiceImpl implements AccountService {
 //        }
         System.out.println(accountDto.getAccountNo());
 
-     employeeClient.getSingleEmployee(accountDto.getEmployeeId());
+        try {
+            employeeClient.getSingleEmployee(accountDto.getEmployeeId());
+        } catch (FeignException e) {
+            HttpStatus httpStatus = HttpStatus.resolve(e.status());
+            if (httpStatus == null) {
+                httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+            }
+            String message;
+            if (httpStatus == HttpStatus.NOT_FOUND) {
+                message = "Employee not found with id" + accountDto.getEmployeeId();
+            } else {
+                message = "Error while communicating with employee service " + accountDto.getEmployeeId();
+            }
+            throw new EmployeeServiceException(message,httpStatus,e);
+        }
 
 
         Account account = modelMapper.map(accountDto, Account.class);
