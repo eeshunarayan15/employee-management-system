@@ -35,4 +35,5 @@ public class GlobalExceptionHandler {
         ApiResponse<Map<Object, Object>> response = new ApiResponse<>("Error", exception.getMessage(), Collections.emptyMap());
         return  ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
+
 }
